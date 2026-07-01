@@ -1,13 +1,22 @@
+import 'dotenv/config';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import fetch from 'node-fetch';
 import https from 'https';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+// Load .env file from the project root (relative to this script)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+dotenv.config({ path: resolve(__dirname, '..', '.env') });
 
 // Allow self-signed certificates for self-hosted Kiwi TCMS instances
 const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
-const KIWI_URL = process.env.KIWI_URL?.replace(/\/$/, '') ?? 'http://51.44.84.19';
+const KIWI_URL = process.env.KIWI_URL?.replace(/\/$/, '') ?? '';
 const KIWI_USERNAME = process.env.KIWI_USERNAME ?? '';
 const KIWI_PASSWORD = process.env.KIWI_PASSWORD ?? '';
 
