@@ -77,41 +77,61 @@ Additional fields:
 npm install
 ```
 
-This installs `@modelcontextprotocol/sdk`, `node-fetch`, `dotenv`, and `zod`.
+This installs `@modelcontextprotocol/sdk`, `node-fetch`, and `zod`.
 
 ## Configuration
 
-The server is configured via environment variables. You can set them inline, through your MCP config, or by creating a `.env` file in the project root (loaded automatically via [dotenv](https://www.npmjs.com/package/dotenv)):
+The server reads credentials from environment variables. Each user sets `KIWI_URL`, `KIWI_USERNAME`, and `KIWI_PASSWORD` as system/user environment variables on their own machine, then references them in the MCP config using `${VAR}` syntax. No credentials are hardcoded or committed.
 
-| Variable | Default | Description |
+| Variable | Required | Description |
 |---|---|---|
-| `KIWI_URL` | _(required)_ | Base URL of your Kiwi TCMS instance |
-| `KIWI_USERNAME` | _(empty)_ | Login username |
-| `KIWI_PASSWORD` | _(empty)_ | Login password |
+| `KIWI_URL` | ✅ | Base URL of your Kiwi TCMS instance |
+| `KIWI_USERNAME` | ✅ | Login username |
+| `KIWI_PASSWORD` | ✅ | Login password |
 
-### Using a `.env` file
+### Setup (per user)
 
-Create a `.env` file in the project root:
+**1. Set environment variables on your machine:**
 
-```env
-KIWI_URL=https://your-kiwi-instance
-KIWI_USERNAME=your_user
-KIWI_PASSWORD=your_pass
+Windows (run in PowerShell as admin, or via System Settings → Environment Variables):
+```powershell
+[System.Environment]::SetEnvironmentVariable('KIWI_URL', 'https://your-kiwi-instance', 'User')
+[System.Environment]::SetEnvironmentVariable('KIWI_USERNAME', 'your_user', 'User')
+[System.Environment]::SetEnvironmentVariable('KIWI_PASSWORD', 'your_pass', 'User')
 ```
 
-> The `.env` file is git-ignored by default. Never commit credentials.
+macOS/Linux (add to `~/.bashrc`, `~/.zshrc`, or equivalent):
+```bash
+export KIWI_URL="https://your-kiwi-instance"
+export KIWI_USERNAME="your_user"
+export KIWI_PASSWORD="your_pass"
+```
+
+**2. Reference them in your MCP config** (`.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "kiwi-tcms": {
+      "command": "node",
+      "args": ["/absolute/path/to/kiwi-tcms-mcp/src/index.js"],
+      "env": {
+        "KIWI_URL": "${KIWI_URL}",
+        "KIWI_USERNAME": "${KIWI_USERNAME}",
+        "KIWI_PASSWORD": "${KIWI_PASSWORD}"
+      }
+    }
+  }
+}
+```
+
+Kiro expands `${VAR}` at runtime from your system environment. Nothing sensitive is stored in the repo.
 
 > Self-signed TLS certificates are accepted automatically, which is useful for self-hosted instances.
 
 ## Usage
 
 ### Running the server directly
-
-```bash
-npm start
-```
-
-Or with inline environment variables (if not using `.env`):
 
 ```bash
 KIWI_URL=https://your-kiwi-instance \
@@ -133,9 +153,9 @@ Add the server to your MCP configuration file (e.g. `.kiro/settings/mcp.json`, `
       "command": "node",
       "args": ["/absolute/path/to/kiwi-tcms-mcp/src/index.js"],
       "env": {
-        "KIWI_URL": "https://your-kiwi-instance",
-        "KIWI_USERNAME": "your_user",
-        "KIWI_PASSWORD": "your_pass"
+        "KIWI_URL": "${KIWI_URL}",
+        "KIWI_USERNAME": "${KIWI_USERNAME}",
+        "KIWI_PASSWORD": "${KIWI_PASSWORD}"
       }
     }
   }
