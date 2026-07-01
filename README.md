@@ -32,6 +32,7 @@ The server registers the following tools:
 | `kiwi_create_test_case` | Create a test case with steps, navigation, role, priority, and format (table/list) |
 | `kiwi_update_test_case` | Update an existing test case |
 | `kiwi_disable_test_case` | Disable a test case that is no longer relevant |
+| `kiwi_list_disabled_cases` | List all disabled test cases, optionally filtered by product or plan |
 
 ### Tags
 
@@ -77,11 +78,11 @@ Additional fields:
 npm install
 ```
 
-This installs `@modelcontextprotocol/sdk`, `node-fetch`, and `zod`.
+This installs `@modelcontextprotocol/sdk`, `node-fetch`, `zod`, and `dotenv`.
 
 ## Configuration
 
-The server reads credentials from environment variables. Each user sets `KIWI_URL`, `KIWI_USERNAME`, and `KIWI_PASSWORD` as system/user environment variables on their own machine, then references them in the MCP config using `${VAR}` syntax. No credentials are hardcoded or committed.
+The server reads credentials from environment variables. You can either set system/user environment variables on your machine, or create a `.env` file in the project root (automatically loaded via `dotenv`). For MCP configs, reference them using `${VAR}` syntax. No credentials are hardcoded or committed.
 
 | Variable | Required | Description |
 |---|---|---|
@@ -91,7 +92,18 @@ The server reads credentials from environment variables. Each user sets `KIWI_UR
 
 ### Setup (per user)
 
-**1. Set environment variables on your machine:**
+**Option A — Use a `.env` file** (simplest for local development):
+
+Create a `.env` file in the project root:
+```env
+KIWI_URL=https://your-kiwi-instance
+KIWI_USERNAME=your_user
+KIWI_PASSWORD=your_pass
+```
+
+> Make sure `.env` is in `.gitignore` to avoid committing credentials.
+
+**Option B — Set system environment variables:**
 
 Windows (run in PowerShell as admin, or via System Settings → Environment Variables):
 ```powershell
@@ -107,7 +119,7 @@ export KIWI_USERNAME="your_user"
 export KIWI_PASSWORD="your_pass"
 ```
 
-**2. Reference them in your MCP config** (`.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`):
+**Then, reference them in your MCP config** (`.kiro/settings/mcp.json` or `~/.kiro/settings/mcp.json`):
 
 ```json
 {
@@ -166,9 +178,9 @@ Once configured, you can ask the AI to create test plans and cases in natural la
 
 > "Generate test cases for ADS-1697 and push them to Kiwi TCMS under the AWA product."
 
-## Cursor AI Skill
+## AI Skill (Kiro / Cursor)
 
-A ready-to-use [Cursor agent skill](https://docs.cursor.com/context/rules-for-ai) is included in `skills/kiwi-tcms-test-generation/SKILL.md`. Once installed, you can ask Cursor to generate and push a full test plan from a feature branch with a single prompt.
+A ready-to-use AI skill is included in `skills/kiwi-tcms-test-generation/SKILL.md`. It works with Kiro (as a bundled skill) and Cursor (via the [agent skills](https://docs.cursor.com/context/rules-for-ai) mechanism). Once installed, you can generate and push a full test plan from a feature branch with a single prompt.
 
 ### What the skill does
 
@@ -179,7 +191,11 @@ A ready-to-use [Cursor agent skill](https://docs.cursor.com/context/rules-for-ai
 
 ### Installation
 
-**1. Copy the skill to the Cursor global skills folder:**
+**For Kiro:** The skill is bundled with this repo and automatically available when the MCP server is configured in your workspace.
+
+**For Cursor:**
+
+1. Copy the skill to the Cursor global skills folder:
 
 ```bash
 mkdir -p ~/.agents/skills/kiwi-tcms-test-generation
@@ -187,16 +203,16 @@ cp skills/kiwi-tcms-test-generation/SKILL.md \
    ~/.agents/skills/kiwi-tcms-test-generation/SKILL.md
 ```
 
-**2. Edit the copied file and replace all placeholders** (search for `<REPLACE_`):
+2. Edit the copied file and replace all placeholders (search for `<REPLACE_`):
 
 | Placeholder | Description | Example |
 |---|---|---|
 | `<REPLACE_KIWI_URL>` | Base URL of your Kiwi TCMS instance | `https://tcms.example.com` |
 | `<REPLACE_MCP_SERVER_PATH>` | Absolute path to `src/index.js` on your machine | `/home/alice/kiwi-tcms-mcp/src/index.js` |
 
-**3. Make sure the MCP server is registered** in your IDE's MCP config (see integration section above).
+3. Make sure the MCP server is registered in your IDE's MCP config (see integration section above).
 
-**4. Restart your IDE** for the skill and the MCP server to be picked up.
+4. Restart your IDE for the skill and the MCP server to be picked up.
 
 ### Usage
 
