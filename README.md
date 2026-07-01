@@ -77,21 +77,41 @@ Additional fields:
 npm install
 ```
 
+This installs `@modelcontextprotocol/sdk`, `node-fetch`, `dotenv`, and `zod`.
+
 ## Configuration
 
-The server is configured via environment variables:
+The server is configured via environment variables. You can set them inline, through your MCP config, or by creating a `.env` file in the project root (loaded automatically via [dotenv](https://www.npmjs.com/package/dotenv)):
 
 | Variable | Default | Description |
 |---|---|---|
-| `KIWI_URL` | _(none)_ | Base URL of your Kiwi TCMS instance |
+| `KIWI_URL` | _(required)_ | Base URL of your Kiwi TCMS instance |
 | `KIWI_USERNAME` | _(empty)_ | Login username |
 | `KIWI_PASSWORD` | _(empty)_ | Login password |
+
+### Using a `.env` file
+
+Create a `.env` file in the project root:
+
+```env
+KIWI_URL=https://your-kiwi-instance
+KIWI_USERNAME=your_user
+KIWI_PASSWORD=your_pass
+```
+
+> The `.env` file is git-ignored by default. Never commit credentials.
 
 > Self-signed TLS certificates are accepted automatically, which is useful for self-hosted instances.
 
 ## Usage
 
 ### Running the server directly
+
+```bash
+npm start
+```
+
+Or with inline environment variables (if not using `.env`):
 
 ```bash
 KIWI_URL=https://your-kiwi-instance \
