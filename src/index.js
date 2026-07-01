@@ -341,7 +341,7 @@ server.tool(
 // --- kiwi_update_test_case ---
 server.tool(
   'kiwi_update_test_case',
-  'Update an existing test case: summary, preconditions, steps, notes',
+  'Update an existing test case: summary, preconditions, steps, notes, status (CONFIRMED/DISABLED/PROPOSED)',
   {
     case_id: z.number().describe('Test case ID to update'),
     summary: z.string().optional().describe('New title for the test case'),
@@ -355,8 +355,9 @@ server.tool(
     navigation: z.string().optional().describe('Navigation path to reach the screen, e.g. "Login → Menu → Daily Roaster"'),
     role: z.string().optional().describe('User role for this test, e.g. "Sales Manager (SM)"'),
     priority: z.enum(['P1', 'P2', 'P3', 'P4']).optional().describe('Priority level: P1 (highest) to P4 (lowest)'),
+    case_status: z.enum(['PROPOSED', 'CONFIRMED', 'DISABLED']).optional().describe('Test case status: PROPOSED, CONFIRMED (re-enable), or DISABLED'),
   },
-  async ({ case_id, summary, preconditions, steps, notes, format, navigation, role, priority }) => {
+  async ({ case_id, summary, preconditions, steps, notes, format, navigation, role, priority, case_status }) => {
     await ensureLoggedIn();
 
     const updateParams = {};
@@ -365,6 +366,10 @@ server.tool(
     if (priority) {
       const priorityMap = { P1: 1, P2: 2, P3: 3, P4: 4 };
       updateParams.priority = priorityMap[priority];
+    }
+    if (case_status) {
+      const statusMap = { PROPOSED: 1, CONFIRMED: 2, DISABLED: 3 };
+      updateParams.case_status = statusMap[case_status];
     }
 
     // Build formatted text based on chosen format
@@ -488,6 +493,34 @@ server.tool(
     // case_status 3 = DISABLED
     await rpc('TestCase.update', [case_id, { case_status: 3 }]);
     return { content: [{ type: 'text', text: `✅ Test Case ID=${case_id} disabled.` }] };
+  }
+);
+
+// --- kiwi_list_disabled_cases ---
+server.tool(
+  'kiwi_list_disabled_cases',
+  'List all disabled test cases, optionally filtered by product or test plan',
+  {
+    product_id: z.number().optional().describe('Filter by product ID (optional)'),
+    plan_id: z.number().optional().describe('Filter by test plan ID (optional)'),
+  },
+  async ({ product_id, plan_id }) => {
+    await ensureLoggedIn();
+    // case_status 3 = DISABLED
+    const filter = { case_status: 3 };
+    if (product_id) filter.product = product_id;
+    if (plan_id) filter.plan = plan_id;
+
+    const cases = await rpc('TestCase.filter', [filter]);
+    if (!cases.length) return { content: [{ type: 'text', text: 'No disabled test cases found.' }] };
+
+    const lines = cases.map(c => `ID=${c.id} | ${c.summary} (product: ${c.product})`).join('\n');
+    return {
+      content: [{
+        type: 'text',
+        text: `Disabled test cases (${cases.length}):\n${lines}`,
+      }],
+    };
   }
 );
 
