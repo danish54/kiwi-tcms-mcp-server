@@ -4,7 +4,7 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 ## Features
 
-The server registers the following tools:
+The server registers **50+ tools** covering the full Kiwi TCMS lifecycle:
 
 ### Products & Versions
 
@@ -18,41 +18,104 @@ The server registers the following tools:
 | Tool | Description |
 |---|---|
 | `kiwi_list_test_plans` | List test plans, optionally filtered by product |
+| `kiwi_get_test_plan` | Get full details of a test plan (name, description, product, version, active status) |
 | `kiwi_create_test_plan` | Create a new test plan |
 | `kiwi_update_test_plan` | Update plan name, description, or deactivate |
 | `kiwi_add_case_to_plan` | Add an existing test case to a plan |
 | `kiwi_remove_case_from_plan` | Unlink a test case from a plan |
+| `kiwi_plan_tree` | Get plan hierarchy (parent/child plans) |
+| `kiwi_update_case_order` | Reorder test cases within a plan by setting sort keys |
+| `kiwi_add_plan_attachment` | Upload a file attachment to a test plan |
+| `kiwi_list_plan_attachments` | List attachments on a test plan |
+| `kiwi_add_plan_tag` | Add tags to a test plan |
+| `kiwi_remove_plan_tag` | Remove tags from a test plan |
 
 ### Test Cases
 
 | Tool | Description |
 |---|---|
 | `kiwi_list_test_cases` | List test cases in a test plan |
-| `kiwi_get_test_case` | Get full details (steps, notes, priority, tags) |
+| `kiwi_get_test_case_full` | Fetch ALL data: summary, steps, tags, attachments (with URLs), priority, status, notes, category, author |
 | `kiwi_create_test_case` | Create a test case with steps, navigation, role, priority, and format (table/list) |
-| `kiwi_update_test_case` | Update an existing test case |
+| `kiwi_reformat_test_case` | Non-destructive reformat & push — updates only specified fields, builds HTML table from structured steps |
 | `kiwi_disable_test_case` | Disable a test case that is no longer relevant |
 | `kiwi_list_disabled_cases` | List all disabled test cases, optionally filtered by product or plan |
+| `kiwi_search_test_cases` | Search by product, plan, status, priority, tag, or summary keyword |
 
-### Tags
+### Tags & Components
 
 | Tool | Description |
 |---|---|
 | `kiwi_add_tag` | Add one or more tags to a test case |
 | `kiwi_remove_tag` | Remove tags from a test case |
 | `kiwi_list_tags` | List all tags on a test case |
+| `kiwi_add_component` | Link a component (module/feature) to a test case |
+| `kiwi_remove_component` | Unlink a component from a test case |
 
-### Test Runs & Executions
+### Test Case Metadata
+
+| Tool | Description |
+|---|---|
+| `kiwi_add_case_comment` | Add a comment to a test case |
+| `kiwi_list_case_comments` | List comments on a test case |
+| `kiwi_add_attachment` | Upload a file attachment to a test case |
+| `kiwi_list_attachments` | List all attachments on a test case |
+| `kiwi_case_history` | Get audit trail — who changed what and when |
+| `kiwi_case_properties` | List custom key-value properties |
+| `kiwi_add_case_property` | Add a custom property |
+| `kiwi_remove_case_property` | Remove a custom property |
+
+### Test Runs
 
 | Tool | Description |
 |---|---|
 | `kiwi_list_builds` | List builds for a product version |
 | `kiwi_create_build` | Create a new build for a version |
 | `kiwi_create_test_run` | Create a test run (campaign) from a test plan |
+| `kiwi_update_test_run` | Update a test run: name, notes, or stop date |
 | `kiwi_list_test_runs` | List test runs, optionally filtered by plan |
+| `kiwi_add_case_to_run` | Add a test case to a test run |
+| `kiwi_remove_case_from_run` | Remove a test case from a test run |
+| `kiwi_get_run_cases` | Get test cases included in a test run |
+| `kiwi_add_run_tag` | Add tags to a test run |
+| `kiwi_remove_run_tag` | Remove tags from a test run |
+| `kiwi_add_run_cc` | Add notification subscribers |
+| `kiwi_get_run_cc` | List notification subscribers |
+| `kiwi_remove_run_cc` | Remove a subscriber |
+| `kiwi_add_run_attachment` | Upload a file attachment to a test run |
+| `kiwi_list_run_attachments` | List attachments on a test run |
+
+### Test Executions
+
+| Tool | Description |
+|---|---|
 | `kiwi_list_test_executions` | List executions in a run with their status |
 | `kiwi_update_test_execution` | Mark execution as PASSED, FAILED, BLOCKED, WAIVED, ERROR, or IDLE |
 | `kiwi_add_execution_comment` | Add a comment to a test execution |
+| `kiwi_list_execution_comments` | Read comments on a test execution |
+| `kiwi_add_execution_link` | Add a URL link (bug tracker, CI build, etc.) |
+| `kiwi_list_execution_links` | List URL links on a test execution |
+| `kiwi_remove_execution_link` | Remove a URL link |
+| `kiwi_add_execution_attachment` | Upload a file attachment (evidence) |
+| `kiwi_list_execution_attachments` | List attachments on a test execution |
+| `kiwi_add_execution_tag` | Add tags to a test execution |
+| `kiwi_remove_execution_tag` | Remove tags from a test execution |
+| `kiwi_execution_history` | Get audit trail for a test execution |
+
+### Reporting & Analytics
+
+| Tool | Description |
+|---|---|
+| `kiwi_test_run_report` | Generate a test run report with pass/fail statistics (summary, detailed, or JSON) |
+| `kiwi_test_plan_metrics` | Get plan metrics: total cases, status breakdown, priority distribution, coverage |
+
+### Users & Bugs
+
+| Tool | Description |
+|---|---|
+| `kiwi_list_users` | List/search users in Kiwi TCMS |
+| `kiwi_bug_details` | Get bug details from the configured bug tracker |
+| `kiwi_bug_report` | Report a bug from a test execution |
 
 ## Test Case Formatting
 
@@ -234,8 +297,10 @@ package.json
 
 ## How it works
 
-1. On first tool call the server authenticates with `Auth.login` and stores the session cookie.
-2. Every subsequent call reuses that session — no re-login overhead.
-3. Tools communicate with the Kiwi TCMS [JSON-RPC API](https://kiwitcms.readthedocs.io/en/latest/api/index.html) (`POST /json-rpc/`).
-4. Test case content (steps, preconditions) is stored in the `text` field as formatted HTML (table or list format).
-5. Notes and priority use Kiwi's dedicated fields rather than being embedded in the text body.
+1. On startup, the server authenticates with `Auth.login` and stores the session cookie.
+2. A `rpcSafe` wrapper handles session expiry — if a 403 is returned, it re-authenticates once and retries.
+3. All tool handlers are wrapped in an error handler that catches exceptions and returns them as MCP error content (no crashes).
+4. Tag and multi-item operations run in parallel using `Promise.all` for better performance.
+5. Tools communicate with the Kiwi TCMS [JSON-RPC API](https://kiwitcms.readthedocs.io/en/latest/api/index.html) (`POST /json-rpc/`).
+6. Test case content (steps, preconditions) is stored in the `text` field as formatted HTML (table or list format).
+7. The `kiwi_reformat_test_case` tool is non-destructive — it only updates fields you explicitly provide and preserves everything else.
